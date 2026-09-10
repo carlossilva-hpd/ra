@@ -238,20 +238,69 @@
       right:10px;
       bottom:max(10px, env(safe-area-inset-bottom));
       max-width:620px;
+      max-height:min(48vh, 430px);
       margin:0 auto;
-      padding:17px;
+      padding:12px 17px 17px;
       border-radius:24px;
       background:rgba(247,245,239,.97);
       box-shadow:var(--shadow);
       backdrop-filter:blur(14px);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
       transform:translateY(125%);
       opacity:0;
-      transition:transform .34s ease, opacity .28s ease;
+      transition:transform .34s ease, opacity .28s ease, max-height .24s ease;
     }
 
     .sheet.visible{
       transform:translateY(0);
       opacity:1;
+    }
+
+    .sheet.minimized{
+      max-height:86px;
+      padding-bottom:12px;
+    }
+
+    .sheet-top{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:26px;
+      margin-bottom:4px;
+    }
+
+    .grabber{
+      width:42px;
+      height:5px;
+      border-radius:999px;
+      background:#C9D3E0;
+    }
+
+    .collapse-toggle{
+      position:absolute;
+      right:0;
+      top:-2px;
+      min-height:30px;
+      padding:0 11px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      color:var(--navy);
+      font-size:11px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .sheet-body{
+      overflow:auto;
+      padding-top:2px;
+    }
+
+    .sheet.minimized .sheet-body{
+      display:none;
     }
 
     .eyebrow{
@@ -582,6 +631,11 @@
 
   <!-- RA-04 -->
   <section id="controlPanel" class="sheet" aria-live="polite">
+    <div class="sheet-top">
+      <div class="grabber"></div>
+      <button id="controlToggle" class="collapse-toggle" type="button">VER MENOS</button>
+    </div>
+    <div class="sheet-body">
     <div class="eyebrow">
       <span>Conte o que aconteceu</span>
       <span id="modeBadge" class="mode-badge" style="display:none">Novo teste</span>
@@ -634,11 +688,17 @@
     <div id="controlNote" class="mini-note">
       Mantenha o cartão na câmera para abrir o Raio-X.
     </div>
+    </div>
   </section>
 
 
   <!-- RA-05 -->
   <section id="reflectionPanel" class="sheet" aria-live="polite">
+    <div class="sheet-top">
+      <div class="grabber"></div>
+      <button id="reflectionToggle" class="collapse-toggle" type="button">VER MENOS</button>
+    </div>
+    <div class="sheet-body">
     <div class="eyebrow">
       <span id="reflectionEyebrow">Raio-X pronto</span>
       <span class="mode-badge">Resultado</span>
@@ -686,6 +746,7 @@
     <button id="goBookButton" class="outline">
       VOLTAR AO LIVRO
     </button>
+    </div>
   </section>
 
 
@@ -694,10 +755,10 @@
     mindar-image="
       imageTargetSrc: ./targets.mind;
       autoStart: true;
-      filterMinCF: 0.001;
+      filterMinCF: 0.0005;
       filterBeta: 0.01;
-      missTolerance: 5;
-      warmupTolerance: 5;
+      missTolerance: 2;
+      warmupTolerance: 1;
     "
     color-space="sRGB"
     renderer="
@@ -725,7 +786,7 @@
         <a-plane width="0.48" height="0.24" color="#061A62" opacity="0.97"></a-plane>
 
         <a-text
-          value="SERVIÇO"
+          value="SERVICO"
           color="#FFFFFF"
           align="center"
           width="1.3"
@@ -879,6 +940,8 @@
 
     const controlPanel = document.querySelector("#controlPanel");
     const reflectionPanel = document.querySelector("#reflectionPanel");
+    const controlToggle = document.querySelector("#controlToggle");
+    const reflectionToggle = document.querySelector("#reflectionToggle");
 
     const controlTitle = document.querySelector("#controlTitle");
     const controlHelper = document.querySelector("#controlHelper");
@@ -922,6 +985,28 @@
     let timers = [];
     let retestMode = false;
     let baseState = null;
+
+    function setSheetMinimized(panel, button, minimized){
+      panel.classList.toggle("minimized", minimized);
+      button.textContent = minimized ? "VER MAIS" : "VER MENOS";
+      button.setAttribute("aria-expanded", String(!minimized));
+    }
+
+    controlToggle.addEventListener("click", () => {
+      setSheetMinimized(
+        controlPanel,
+        controlToggle,
+        !controlPanel.classList.contains("minimized")
+      );
+    });
+
+    reflectionToggle.addEventListener("click", () => {
+      setSheetMinimized(
+        reflectionPanel,
+        reflectionToggle,
+        !reflectionPanel.classList.contains("minimized")
+      );
+    });
 
     function hideScreen(screen){
       screen.classList.add("hidden");
@@ -1111,20 +1196,20 @@
       renderAR(decision);
       resetSteps();
 
-      const delay = 680;
+      const stepSchedule = [0, 140, 280, 420, 600, 780];
 
       steps.forEach((step,index) => {
         timers.push(
           setTimeout(
             () => showStep(step),
-            index * delay
+            stepSchedule[index]
           )
         );
       });
 
       setTimeout(
         () => showReflection(decision, previous),
-        (steps.length - 1) * delay + 550
+        1120
       );
     }
 
@@ -1207,6 +1292,7 @@
           "MUDAR UMA COISA E TESTAR DE NOVO";
       }
 
+      setSheetMinimized(reflectionPanel, reflectionToggle, false);
       reflectionPanel.classList.add("visible");
 
       if(!retestMode){
@@ -1242,6 +1328,7 @@
       modeBadge.style.display = "inline-block";
       inspectButton.textContent = "ABRIR O RAIO-X DE NOVO";
 
+      setSheetMinimized(controlPanel, controlToggle, false);
       controlPanel.classList.add("visible");
       resetPredictionResponse();
       updateInspectState();
@@ -1270,6 +1357,7 @@
         !reflectionPanel.classList.contains("visible") &&
         finalScreen.classList.contains("hidden")
       ){
+        setSheetMinimized(controlPanel, controlToggle, false);
         controlPanel.classList.add("visible");
       }
     });
@@ -1305,6 +1393,8 @@
 
       reflectionPanel.classList.remove("visible");
       controlPanel.classList.remove("visible");
+      setSheetMinimized(controlPanel, controlToggle, false);
+      setSheetMinimized(reflectionPanel, reflectionToggle, false);
 
       updateInspectState();
     }
