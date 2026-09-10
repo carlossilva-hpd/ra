@@ -16,6 +16,10 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     html,
     body {
       margin: 0;
@@ -28,7 +32,7 @@
 
     .instruction {
       position: fixed;
-      z-index: 20;
+      z-index: 30;
       left: 16px;
       right: 16px;
       top: 20px;
@@ -37,7 +41,7 @@
 
       border-radius: 14px;
 
-      background: rgba(6, 26, 98, 0.92);
+      background: rgba(6, 26, 98, 0.94);
 
       color: #ffffff;
 
@@ -52,6 +56,181 @@
       opacity: 0;
       pointer-events: none;
     }
+
+    .controls {
+      position: fixed;
+      z-index: 40;
+
+      left: 12px;
+      right: 12px;
+      bottom: 14px;
+
+      padding: 16px;
+
+      border-radius: 20px;
+
+      background: rgba(255, 255, 255, 0.96);
+
+      color: #061A62;
+
+      box-shadow: 0 8px 28px rgba(0,0,0,.20);
+
+      transform: translateY(140%);
+      opacity: 0;
+
+      transition:
+        transform 0.35s ease,
+        opacity 0.35s ease;
+    }
+
+    .controls.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .controls h2 {
+      margin: 0 0 4px 0;
+
+      font-size: 18px;
+
+      color: #061A62;
+    }
+
+    .controls .subtitle {
+      margin: 0 0 14px 0;
+
+      font-size: 13px;
+
+      line-height: 1.35;
+
+      color: #46516A;
+    }
+
+    .question {
+      margin-top: 12px;
+    }
+
+    .question-label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .options {
+      display: grid;
+
+      grid-template-columns: 1fr 1fr;
+
+      gap: 8px;
+    }
+
+    .option {
+      min-height: 44px;
+
+      border: 2px solid #D9DFEA;
+
+      border-radius: 12px;
+
+      background: #ffffff;
+
+      color: #061A62;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    .option.selected {
+      border-color: #0A9FEC;
+
+      background: #E8F6FD;
+    }
+
+    .inspect {
+      width: 100%;
+
+      min-height: 48px;
+
+      margin-top: 16px;
+
+      border: 0;
+
+      border-radius: 14px;
+
+      background: #061A62;
+
+      color: white;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      transition:
+        opacity .2s ease,
+        transform .2s ease;
+    }
+
+    .inspect:disabled {
+      opacity: .35;
+
+      cursor: default;
+    }
+
+    .inspect:not(:disabled):active {
+      transform: scale(.98);
+    }
+
+    .retest {
+      display: none;
+
+      width: 100%;
+
+      min-height: 44px;
+
+      margin-top: 8px;
+
+      border: 2px solid #061A62;
+
+      border-radius: 14px;
+
+      background: white;
+
+      color: #061A62;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .retest.visible {
+      display: block;
+    }
+
+    .result-note {
+      display: none;
+
+      margin-top: 12px;
+
+      padding: 10px 12px;
+
+      border-radius: 12px;
+
+      background: #F2F6FA;
+
+      font-size: 13px;
+
+      line-height: 1.4;
+    }
+
+    .result-note.visible {
+      display: block;
+    }
   </style>
 </head>
 
@@ -64,6 +243,108 @@
     Aponte para o Cartão de Inspeção Nexus
   </div>
 
+
+  <!-- CONTROLES DO ESTUDANTE -->
+
+  <section
+    id="controls"
+    class="controls"
+  >
+
+    <h2>
+      O que aconteceu no teste?
+    </h2>
+
+    <p class="subtitle">
+      Informe os estados observados na sua Cidade que Decide.
+    </p>
+
+
+    <div class="question">
+
+      <span class="question-label">
+        Serviço funcionando?
+      </span>
+
+      <div class="options">
+
+        <button
+          class="option"
+          data-field="service"
+          data-value="true"
+        >
+          VERDADEIRO
+        </button>
+
+        <button
+          class="option"
+          data-field="service"
+          data-value="false"
+        >
+          FALSO
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="question">
+
+      <span class="question-label">
+        Rota liberada?
+      </span>
+
+      <div class="options">
+
+        <button
+          class="option"
+          data-field="route"
+          data-value="true"
+        >
+          VERDADEIRO
+        </button>
+
+        <button
+          class="option"
+          data-field="route"
+          data-value="false"
+        >
+          FALSO
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="inspectButton"
+      class="inspect"
+      disabled
+    >
+      INSPECIONAR A DECISÃO
+    </button>
+
+
+    <div
+      id="resultNote"
+      class="result-note"
+    >
+    </div>
+
+
+    <button
+      id="retestButton"
+      class="retest"
+    >
+      ALTERAR UMA CONDIÇÃO
+    </button>
+
+  </section>
+
+
+  <!-- CENA RA -->
 
   <a-scene
     mindar-image="
@@ -96,7 +377,9 @@
       mindar-image-target="targetIndex: 0"
     >
 
-      <!-- ETAPA 1 -->
+
+      <!-- SERVIÇO -->
+
       <a-entity
         id="step1"
         visible="false"
@@ -119,7 +402,8 @@
         </a-text>
 
         <a-text
-          value="VERDADEIRO"
+          id="serviceText"
+          value=""
           color="#FFFFFF"
           align="center"
           width="1.12"
@@ -129,7 +413,8 @@
       </a-entity>
 
 
-      <!-- ETAPA 2 -->
+      <!-- ROTA -->
+
       <a-entity
         id="step2"
         visible="false"
@@ -152,10 +437,11 @@
         </a-text>
 
         <a-text
-          value="FALSO"
+          id="routeText"
+          value=""
           color="#FFFFFF"
           align="center"
-          width="1.2"
+          width="1.12"
           position="0 -0.045 0.02">
         </a-text>
 
@@ -163,6 +449,7 @@
 
 
       <!-- OPERADOR -->
+
       <a-entity
         id="step3"
         visible="false"
@@ -186,6 +473,7 @@
 
 
       <!-- RESULTADO -->
+
       <a-entity
         id="step4"
         visible="false"
@@ -193,14 +481,15 @@
       >
 
         <a-plane
-          width="0.72"
-          height="0.22"
+          width="0.74"
+          height="0.24"
           color="#FFFFFF"
           opacity="0.97">
         </a-plane>
 
         <a-text
-          value="V e F"
+          id="formulaText"
+          value=""
           color="#061A62"
           align="center"
           width="1.3"
@@ -208,10 +497,11 @@
         </a-text>
 
         <a-text
-          value="RESULTADO: FALSO"
+          id="resultText"
+          value=""
           color="#061A62"
           align="center"
-          width="1.15"
+          width="1.10"
           position="0 -0.045 0.02">
         </a-text>
 
@@ -219,6 +509,7 @@
 
 
       <!-- RAMO -->
+
       <a-entity
         id="step5"
         visible="false"
@@ -233,7 +524,8 @@
         </a-plane>
 
         <a-text
-          value="SENAO"
+          id="branchText"
+          value=""
           color="#061A62"
           align="center"
           width="1.25"
@@ -244,6 +536,7 @@
 
 
       <!-- CONSEQUÊNCIA -->
+
       <a-entity
         id="step6"
         visible="false"
@@ -251,6 +544,7 @@
       >
 
         <a-plane
+          id="consequencePlane"
           width="0.82"
           height="0.20"
           color="#0A9FEC"
@@ -258,14 +552,16 @@
         </a-plane>
 
         <a-text
-          value="ROTA ALTERNATIVA"
+          id="consequenceText"
+          value=""
           color="#061A62"
           align="center"
-          width="1.15"
+          width="1.12"
           position="0 0 0.02">
         </a-text>
 
       </a-entity>
+
 
     </a-entity>
 
@@ -274,33 +570,217 @@
 
   <script>
 
+    /* ===============================
+       REFERÊNCIAS
+    =============================== */
+
     const target =
       document.querySelector("#target");
 
     const instruction =
       document.querySelector("#instruction");
 
+    const controls =
+      document.querySelector("#controls");
+
+    const inspectButton =
+      document.querySelector("#inspectButton");
+
+    const retestButton =
+      document.querySelector("#retestButton");
+
+    const resultNote =
+      document.querySelector("#resultNote");
+
+
+    const serviceText =
+      document.querySelector("#serviceText");
+
+    const routeText =
+      document.querySelector("#routeText");
+
+    const formulaText =
+      document.querySelector("#formulaText");
+
+    const resultText =
+      document.querySelector("#resultText");
+
+    const branchText =
+      document.querySelector("#branchText");
+
+    const consequenceText =
+      document.querySelector("#consequenceText");
+
+    const consequencePlane =
+      document.querySelector("#consequencePlane");
+
+
     const steps = [
+
       document.querySelector("#step1"),
+
       document.querySelector("#step2"),
+
       document.querySelector("#step3"),
+
       document.querySelector("#step4"),
+
       document.querySelector("#step5"),
+
       document.querySelector("#step6")
+
     ];
+
+
+    /* ===============================
+       ESTADO
+    =============================== */
+
+    let service = null;
+
+    let route = null;
+
+    let targetVisible = false;
 
     let timers = [];
 
 
+    /* ===============================
+       ESCOLHA V / F
+    =============================== */
+
+    document
+      .querySelectorAll(".option")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const field =
+              button.dataset.field;
+
+            const value =
+              button.dataset.value === "true";
+
+
+            document
+              .querySelectorAll(
+                `.option[data-field="${field}"]`
+              )
+              .forEach(item => {
+                item.classList.remove("selected");
+              });
+
+
+            button.classList.add("selected");
+
+
+            if (field === "service") {
+              service = value;
+            }
+
+            if (field === "route") {
+              route = value;
+            }
+
+
+            updateInspectButton();
+
+          }
+        );
+
+      });
+
+
+    function updateInspectButton() {
+
+      const ready =
+        service !== null &&
+        route !== null &&
+        targetVisible;
+
+      inspectButton.disabled =
+        !ready;
+
+    }
+
+
+    /* ===============================
+       LÓGICA
+    =============================== */
+
+    function evaluateDecision() {
+
+      const result =
+        service && route;
+
+      return {
+
+        result: result,
+
+        branch:
+          result
+            ? "ENTAO"
+            : "SENAO",
+
+        consequence:
+          result
+            ? "PORTA ABRE"
+            : "ROTA ALTERNATIVA"
+
+      };
+
+    }
+
+
+    function booleanLabel(value) {
+
+      return value
+        ? "VERDADEIRO"
+        : "FALSO";
+
+    }
+
+
+    function shortBoolean(value) {
+
+      return value
+        ? "V"
+        : "F";
+
+    }
+
+
+    /* ===============================
+       ANIMAÇÃO
+    =============================== */
+
     function resetSteps() {
 
-      timers.forEach(timer => clearTimeout(timer));
+      timers.forEach(
+        timer => clearTimeout(timer)
+      );
 
       timers = [];
 
+
       steps.forEach(step => {
-        step.setAttribute("visible", false);
-        step.setAttribute("scale", "0.75 0.75 0.75");
+
+        step.setAttribute(
+          "visible",
+          false
+        );
+
+        step.removeAttribute(
+          "animation"
+        );
+
+        step.setAttribute(
+          "scale",
+          "0.75 0.75 0.75"
+        );
+
       });
 
     }
@@ -308,7 +788,11 @@
 
     function showStep(step) {
 
-      step.setAttribute("visible", true);
+      step.setAttribute(
+        "visible",
+        true
+      );
+
 
       step.setAttribute(
         "animation",
@@ -324,26 +808,197 @@
     }
 
 
+    function runInspection() {
+
+      if (
+        service === null ||
+        route === null ||
+        !targetVisible
+      ) {
+        return;
+      }
+
+
+      const decision =
+        evaluateDecision();
+
+
+      serviceText.setAttribute(
+        "value",
+        booleanLabel(service)
+      );
+
+
+      routeText.setAttribute(
+        "value",
+        booleanLabel(route)
+      );
+
+
+      formulaText.setAttribute(
+        "value",
+        `${shortBoolean(service)} E ${shortBoolean(route)}`
+      );
+
+
+      resultText.setAttribute(
+        "value",
+        `RESULTADO: ${booleanLabel(decision.result)}`
+      );
+
+
+      branchText.setAttribute(
+        "value",
+        decision.branch
+      );
+
+
+      consequenceText.setAttribute(
+        "value",
+        decision.consequence
+      );
+
+
+      if (decision.result) {
+
+        consequencePlane.setAttribute(
+          "color",
+          "#0A9FEC"
+        );
+
+      } else {
+
+        consequencePlane.setAttribute(
+          "color",
+          "#FF9046"
+        );
+
+      }
+
+
+      resetSteps();
+
+
+      const delay = 650;
+
+
+      steps.forEach(
+        (step, index) => {
+
+          const timer =
+            setTimeout(
+              () => showStep(step),
+              index * delay
+            );
+
+          timers.push(timer);
+
+        }
+      );
+
+
+      resultNote.innerHTML =
+        `
+        O sistema processou
+        <strong>
+          ${shortBoolean(service)}
+          E
+          ${shortBoolean(route)}
+        </strong>
+        e seguiu o ramo
+        <strong>
+          ${decision.branch}
+        </strong>.
+        `;
+
+
+      resultNote.classList.add(
+        "visible"
+      );
+
+
+      retestButton.classList.add(
+        "visible"
+      );
+
+
+      inspectButton.textContent =
+        "INSPECIONAR NOVAMENTE";
+
+    }
+
+
+    inspectButton.addEventListener(
+      "click",
+      runInspection
+    );
+
+
+    /* ===============================
+       RETESTE
+    =============================== */
+
+    retestButton.addEventListener(
+      "click",
+      () => {
+
+        resetSteps();
+
+
+        resultNote.classList.remove(
+          "visible"
+        );
+
+
+        retestButton.classList.remove(
+          "visible"
+        );
+
+
+        inspectButton.textContent =
+          "INSPECIONAR A DECISÃO";
+
+
+        /*
+          As escolhas permanecem marcadas.
+
+          Isso é proposital.
+
+          O aluno deve mudar APENAS
+          uma variável.
+        */
+
+        controls.scrollIntoView({
+          behavior: "smooth",
+          block: "end"
+        });
+
+      }
+    );
+
+
+    /* ===============================
+       TARGET
+    =============================== */
+
     target.addEventListener(
       "targetFound",
       () => {
 
-        instruction.classList.add("hidden");
+        targetVisible = true;
 
-        resetSteps();
 
-        const delay = 650;
+        instruction.classList.add(
+          "hidden"
+        );
 
-        steps.forEach((step, index) => {
 
-          const timer = setTimeout(
-            () => showStep(step),
-            index * delay
-          );
+        controls.classList.add(
+          "visible"
+        );
 
-          timers.push(timer);
 
-        });
+        updateInspectButton();
 
       }
     );
@@ -353,7 +1008,21 @@
       "targetLost",
       () => {
 
-        instruction.classList.remove("hidden");
+        targetVisible = false;
+
+
+        instruction.classList.remove(
+          "hidden"
+        );
+
+
+        controls.classList.remove(
+          "visible"
+        );
+
+
+        inspectButton.disabled = true;
+
 
         resetSteps();
 
