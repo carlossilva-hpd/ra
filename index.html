@@ -238,19 +238,22 @@
       right:10px;
       bottom:max(10px, env(safe-area-inset-bottom));
       max-width:620px;
-      max-height:min(48vh, 430px);
+      max-height:min(44vh, 390px);
       margin:0 auto;
-      padding:12px 17px 17px;
+      padding:13px 17px 17px;
       border-radius:24px;
       background:rgba(247,245,239,.97);
       box-shadow:var(--shadow);
       backdrop-filter:blur(14px);
-      overflow:hidden;
+      overflow:visible;
       display:flex;
       flex-direction:column;
       transform:translateY(125%);
       opacity:0;
-      transition:transform .34s ease, opacity .28s ease, max-height .24s ease;
+      transition:
+        transform .30s cubic-bezier(.2,.8,.2,1),
+        opacity .24s ease,
+        max-height .22s ease;
     }
 
     .sheet.visible{
@@ -259,16 +262,15 @@
     }
 
     .sheet.minimized{
-      max-height:86px;
-      padding-bottom:12px;
+      max-height:78px;
+      padding:12px 64px 12px 16px;
     }
 
     .sheet-top{
-      position:relative;
       display:flex;
       align-items:center;
       justify-content:center;
-      min-height:26px;
+      min-height:10px;
       margin-bottom:4px;
     }
 
@@ -281,26 +283,72 @@
 
     .collapse-toggle{
       position:absolute;
-      right:0;
-      top:-2px;
-      min-height:30px;
-      padding:0 11px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      background:#fff;
-      color:var(--navy);
-      font-size:11px;
+      right:14px;
+      top:-25px;
+      width:50px;
+      height:50px;
+      display:grid;
+      place-items:center;
+      border:0;
+      border-radius:50%;
+      background:var(--navy);
+      color:#fff;
+      box-shadow:0 10px 26px rgba(6,26,98,.32);
+      font-size:24px;
+      line-height:1;
       font-weight:800;
       cursor:pointer;
+      transition:transform .16s ease, background .16s ease;
+    }
+
+    .collapse-toggle:active{
+      transform:scale(.94);
+    }
+
+    .compact-summary{
+      display:none;
+      align-items:center;
+      min-height:46px;
+      color:var(--navy);
+      font-size:13px;
+      font-weight:800;
+      line-height:1.3;
+    }
+
+    .sheet.minimized .compact-summary{
+      display:flex;
     }
 
     .sheet-body{
       overflow:auto;
-      padding-top:2px;
+      overscroll-behavior:contain;
+      padding:2px 2px 2px 0;
     }
 
+    .sheet.minimized .sheet-top,
     .sheet.minimized .sheet-body{
       display:none;
+    }
+
+    @keyframes choicePop{
+      0%{transform:scale(.96)}
+      55%{transform:scale(1.035)}
+      100%{transform:scale(1)}
+    }
+
+    .choice-pop{
+      animation:choicePop .24s ease-out;
+    }
+
+    @keyframes softPulse{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.06)}
+    }
+
+    .status-pill.working .status-dot{
+      animation:softPulse .65s ease-in-out infinite;
+      background:var(--orange);
+      box-shadow:0 0 0 5px rgba(255,144,70,.18);
     }
 
     .eyebrow{
@@ -514,6 +562,10 @@
         transition:none!important;
         animation:none!important;
       }
+
+      .status-pill.working .status-dot{
+        animation:none!important;
+      }
     }
   </style>
 </head>
@@ -631,9 +683,18 @@
 
   <!-- RA-04 -->
   <section id="controlPanel" class="sheet" aria-live="polite">
+    <button
+      id="controlToggle"
+      class="collapse-toggle"
+      type="button"
+      aria-label="Recolher painel"
+      aria-expanded="true"
+    >⌄</button>
+    <div id="controlCompact" class="compact-summary">
+      Toque em ↑ para escolher os estados do teste.
+    </div>
     <div class="sheet-top">
       <div class="grabber"></div>
-      <button id="controlToggle" class="collapse-toggle" type="button">VER MENOS</button>
     </div>
     <div class="sheet-body">
     <div class="eyebrow">
@@ -694,9 +755,18 @@
 
   <!-- RA-05 -->
   <section id="reflectionPanel" class="sheet" aria-live="polite">
+    <button
+      id="reflectionToggle"
+      class="collapse-toggle"
+      type="button"
+      aria-label="Ver explicação"
+      aria-expanded="false"
+    >⌃</button>
+    <div id="reflectionCompact" class="compact-summary">
+      Raio-X pronto. Toque em ↑ para ver a explicação.
+    </div>
     <div class="sheet-top">
       <div class="grabber"></div>
-      <button id="reflectionToggle" class="collapse-toggle" type="button">VER MENOS</button>
     </div>
     <div class="sheet-body">
     <div class="eyebrow">
@@ -942,6 +1012,8 @@
     const reflectionPanel = document.querySelector("#reflectionPanel");
     const controlToggle = document.querySelector("#controlToggle");
     const reflectionToggle = document.querySelector("#reflectionToggle");
+    const controlCompact = document.querySelector("#controlCompact");
+    const reflectionCompact = document.querySelector("#reflectionCompact");
 
     const controlTitle = document.querySelector("#controlTitle");
     const controlHelper = document.querySelector("#controlHelper");
@@ -988,8 +1060,12 @@
 
     function setSheetMinimized(panel, button, minimized){
       panel.classList.toggle("minimized", minimized);
-      button.textContent = minimized ? "VER MAIS" : "VER MENOS";
+      button.textContent = minimized ? "⌃" : "⌄";
       button.setAttribute("aria-expanded", String(!minimized));
+      button.setAttribute(
+        "aria-label",
+        minimized ? "Ver painel" : "Recolher painel"
+      );
     }
 
     controlToggle.addEventListener("click", () => {
@@ -1062,6 +1138,9 @@
 
         button.classList.add("selected");
         button.setAttribute("aria-pressed", "true");
+        button.classList.remove("choice-pop");
+        void button.offsetWidth;
+        button.classList.add("choice-pop");
 
         if(field === "service") service = value;
         if(field === "route") route = value;
@@ -1159,7 +1238,7 @@
 
       step.setAttribute(
         "animation",
-        "property: scale; from: 0.78 0.78 0.78; to: 1 1 1; dur: 320; easing: easeOutBack;"
+        "property: scale; from: 0.88 0.88 0.88; to: 1 1 1; dur: 220; easing: easeOutCubic;"
       );
     }
 
@@ -1193,23 +1272,39 @@
       const previous = baseState ? { ...baseState } : null;
       const decision = evaluateDecision();
 
+      /* Libera a câmera para o aluno ver o Raio-X sem o drawer cobrindo. */
+      controlPanel.classList.remove("visible");
+      reflectionPanel.classList.remove("visible");
+
+      statusPill.classList.add("working");
+      statusText.textContent = "Abrindo o Raio-X...";
+
       renderAR(decision);
       resetSteps();
 
-      const stepSchedule = [0, 140, 280, 420, 600, 780];
+      const schedule = [
+        { at:   0, step:0, label:"Olhando o serviço..." },
+        { at: 120, step:1, label:"Olhando a rota..." },
+        { at: 250, step:2, label:"Usando E..." },
+        { at: 390, step:3, label:"Vendo o resultado..." },
+        { at: 560, step:4, label:"Escolhendo o caminho..." },
+        { at: 730, step:5, label:"Raio-X pronto!" }
+      ];
 
-      steps.forEach((step,index) => {
+      schedule.forEach(item => {
         timers.push(
-          setTimeout(
-            () => showStep(step),
-            stepSchedule[index]
-          )
+          setTimeout(() => {
+            showStep(steps[item.step]);
+            statusText.textContent = item.label;
+          }, item.at)
         );
       });
 
-      setTimeout(
-        () => showReflection(decision, previous),
-        1120
+      timers.push(
+        setTimeout(() => {
+          statusPill.classList.remove("working");
+          showReflection(decision, previous);
+        }, 930)
       );
     }
 
@@ -1235,6 +1330,9 @@
 
         button.classList.add("selected");
         button.setAttribute("aria-pressed", "true");
+        button.classList.remove("choice-pop");
+        void button.offsetWidth;
+        button.classList.add("choice-pop");
 
         if(button.dataset.prediction === "yes"){
           reflectionFeedback.innerHTML =
@@ -1292,7 +1390,13 @@
           "MUDAR UMA COISA E TESTAR DE NOVO";
       }
 
-      setSheetMinimized(reflectionPanel, reflectionToggle, false);
+      reflectionCompact.textContent =
+        `${shortBoolean(service)} E ${shortBoolean(route)} = ${shortBoolean(decision.result)} · ` +
+        `${decision.branch}: ${decision.consequence}. Toque em ↑ para ver a explicação.`;
+
+      /* Primeiro mostramos o resultado em formato compacto.
+         O aluno consegue olhar o gráfico de RA antes de abrir a explicação. */
+      setSheetMinimized(reflectionPanel, reflectionToggle, true);
       reflectionPanel.classList.add("visible");
 
       if(!retestMode){
@@ -1327,6 +1431,8 @@
 
       modeBadge.style.display = "inline-block";
       inspectButton.textContent = "ABRIR O RAIO-X DE NOVO";
+      controlCompact.textContent =
+        "Novo teste: mude só uma coisa. Toque em ↑ para continuar.";
 
       setSheetMinimized(controlPanel, controlToggle, false);
       controlPanel.classList.add("visible");
@@ -1390,6 +1496,10 @@
 
       modeBadge.style.display = "none";
       inspectButton.textContent = "ABRIR O RAIO-X";
+      controlCompact.textContent =
+        "Toque em ↑ para escolher os estados do teste.";
+      reflectionCompact.textContent =
+        "Raio-X pronto. Toque em ↑ para ver a explicação.";
 
       reflectionPanel.classList.remove("visible");
       controlPanel.classList.remove("visible");
